@@ -1,0 +1,28 @@
+# Arquivos de Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Arquivos de dependências
+node_modules/
+
+# Arquivos de ambiente - NUNCA ENVIAR PARA O GIT
+.env
+.env.*.local
+
+# Pasta do Expo (cache e configurações locais)
+.expo/
+
+# Pastas de build
+build/
+dist/
+android/
+ios/
+
+# Arquivos de IDEs
+.vscode/
+.idea/
