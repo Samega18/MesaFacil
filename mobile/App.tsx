@@ -1,20 +1,50 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider } from './src/contexts/ThemeContext';
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { useSystemNavigationBar } from './src/hooks/useSystemNavigationBar';
+import { AppNavigator } from './src/navigation';
+import { ActivityIndicator, View } from 'react-native';
 
-export default function App() {
+/**
+ * Este componente existe APENAS para garantir que os hooks que usam 
+ * contextos (como o useSystemNavigationBar) sejam chamados DENTRO 
+ * dos seus respectivos Providers.
+ */
+function AppContent() {
+  // Agora esta chamada é segura, pois AppContent é filho do ThemeProvider.
+  useSystemNavigationBar();
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <AppNavigator />
+    </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  let [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator animating={true} color="#0000ff" />
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider>
+        {/* Renderizamos o AppContent aqui, como filho dos providers */}
+        <AppContent />
+      </ThemeProvider>
+    </SafeAreaProvider>
+  );
+}
