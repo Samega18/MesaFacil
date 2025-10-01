@@ -15,10 +15,10 @@ const common = {
   },
 
   status: {
-    recebido: '#2196F3', // Azul
-    emPreparo: '#FFC107', // Amarelo
-    pronto: '#43A047', // Verde
-    entregue: '#9E9E9E', // Cinza
+    received: '#2196F3', // Azul
+    inPreparation: '#FFC107', // Amarelo
+    ready: '#43A047', // Verde
+    delivered: '#9E9E9E', // Cinza
   },
 };
 

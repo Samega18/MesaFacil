@@ -1,22 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useTheme } from '../contexts/ThemeContext'; 
+import { useTheme } from '../contexts/ThemeContext';
+import { metrics, typography } from '../styles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MenuStack } from './MenuStack';
 import { OrdersStack } from './OrdersStack';
-import { metrics, typography } from '../styles';
 import { SettingsStack } from './SettingsStack';
+import { CreateOrderStack } from './CreateOrderStack';
 
 const Tab = createBottomTabNavigator();
 
 export function AppNavigator() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const [insetsReady, setInsetsReady] = useState(false);
 
-  const Value: string = insets.bottom.toString();
+  // Força uma re-renderização quando os insets estão disponíveis
+  useEffect(() => {
+    // Pequeno delay para garantir que os insets foram calculados
+    const timer = setTimeout(() => {
+      setInsetsReady(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Usa um valor mínimo padrão se os insets ainda não estão prontos
+  const safeBottomInset = insetsReady && insets.bottom > 0 
+    ? insets.bottom 
+    : (Platform.OS === 'ios' ? 10 : 5);
 
   return (
     <Tab.Navigator
@@ -29,8 +44,8 @@ export function AppNavigator() {
           backgroundColor: colors.background,
           borderTopWidth: 1,
           borderTopColor: colors.divider,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : (Platform.OS === 'ios' ? 10 : 5),
-          height: (Platform.OS === 'ios' ? 90 : 70) + insets.bottom,
+          paddingBottom: safeBottomInset,
+          height: (Platform.OS === 'ios' ? 90 : 70) + safeBottomInset,
           paddingTop: 10,
           ...metrics.shadows.card,
         },
@@ -48,6 +63,16 @@ export function AppNavigator() {
           title: 'Cardápio',
           tabBarIcon: ({ color, size, focused }) => (
             <Feather name="book-open" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Carrinho"
+        component={CreateOrderStack}
+        options={{
+          title: 'Carrinho',
+          tabBarIcon: ({ color, size, focused }) => (
+            <Feather name="shopping-cart" size={size} color={color} />
           ),
         }}
       />

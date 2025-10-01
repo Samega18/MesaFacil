@@ -7,13 +7,15 @@ import { useSystemNavigationBar } from './src/hooks/useSystemNavigationBar';
 import { AppNavigator } from './src/navigation';
 import { ActivityIndicator, View } from 'react-native';
 
+// Importa o teste de mock data para desenvolvimento
+import './src/tests/mockStoreTest';
+
 /**
  * Este componente existe APENAS para garantir que os hooks que usam 
  * contextos (como o useSystemNavigationBar) sejam chamados DENTRO 
  * dos seus respectivos Providers.
  */
 function AppContent() {
-  // Agora esta chamada é segura, pois AppContent é filho do ThemeProvider.
   useSystemNavigationBar();
 
   return (
@@ -42,7 +44,6 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        {/* Renderizamos o AppContent aqui, como filho dos providers */}
         <AppContent />
       </ThemeProvider>
     </SafeAreaProvider>

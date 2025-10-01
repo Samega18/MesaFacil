@@ -22,6 +22,7 @@ export const fontSizes = {
   body1: scale(16),
   body2: scale(14),
   caption: scale(12),
+  caption2: scale(10),
 };
 
 // Estilos de texto pré-definidos para facilitar o uso
@@ -49,5 +50,9 @@ export const textStyles = {
   caption: {
     fontFamily: fonts.inter.medium,
     fontSize: fontSizes.caption,
+  } as TextStyle,
+  caption2: {
+    fontFamily: fonts.inter.medium,
+    fontSize: fontSizes.caption2,
   } as TextStyle,
 };
