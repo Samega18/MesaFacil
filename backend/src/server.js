@@ -1,12 +1,6 @@
-const express = require('express');
+const app = require('./app');
+const port = 3000;
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.get('/', (req, res) => {
-  res.send('API do Restaurante está no ar!');
-});
-
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+app.listen(port, () => {
+  console.log(`🚀 Server started on http://localhost:${port}`);
 });
