@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Dish {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String
+  price       Decimal
+  category    DishCategory
+  active      Boolean      @default(true)
+  image       String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  orderItems  OrderItem[]
+
+  @@map("dishes")
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  totalValue Decimal     @map("total_value")
+  status     OrderStatus @default(RECEIVED)
+  notes      String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  items      OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String  @map("order_id")
+  dishId    String  @map("dish_id")
+  quantity  Int
+  unitPrice Decimal @map("unit_price")
+  subtotal  Decimal
+  dish      Dish    @relation(fields: [dishId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, dishId])
+  @@map("order_items")
+}
+
+enum DishCategory {
+  APPETIZER
+  DRINK
+  MAIN_COURSE
+  DESSERT
+}
+
+enum OrderStatus {
+  RECEIVED
+  PREPARING
+  READY
+  DELIVERED
+}
