@@ -1,6 +1,6 @@
 // Database types
-export type DishCategory = 'BEVERAGE' | 'MAIN_COURSE' | 'DESSERT';
-export type OrderStatus = 'RECEIVED' | 'PREPARING' | 'READY' | 'DELIVERED';
+export type DishCategory = 'APPETIZER' | 'MAIN_COURSE' | 'DESSERT' | 'DRINK';
+export type OrderStatus = 'PENDING' | 'RECEIVED' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 
 // Main dish interface (database compatible)
 export interface Dish {

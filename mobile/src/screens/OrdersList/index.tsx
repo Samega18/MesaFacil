@@ -1,9 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, FlatList, RefreshControl, ListRenderItem, TouchableOpacity, Text } from 'react-native';
-import { SafeScreen } from '../../components/SafeScreen';
-import { OrdersFilter } from '../../components/OrdersFilter/OrdersFilter';
-import { OrderCard } from '../../components/OrderCard';
-import { UpdateStatusModal } from '../../components/UpdateStatusModal';
+import { SafeScreen, OrdersFilter, OrderCard, UpdateStatusModal } from '../../components';
 import { useOrdersList } from '../../hooks/useOrdersList';
 import { orderFilters } from '../../utils/constants';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -16,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
  */
 const OrdersList: React.FC = () => {
   const { colors } = useTheme();
+
   const {
     selectedFilter,
     refreshing,
@@ -27,6 +25,7 @@ const OrdersList: React.FC = () => {
     handleOrderPress,
     handleCloseModal,
     handleUpdateStatus,
+    handleDeleteOrder,
   } = useOrdersList();
 
   /**
@@ -95,6 +94,7 @@ const OrdersList: React.FC = () => {
         order={selectedOrder}
         onClose={handleCloseModal}
         onUpdateStatus={handleUpdateStatus}
+        onDeleteOrder={handleDeleteOrder}
       />
     </View>
   );

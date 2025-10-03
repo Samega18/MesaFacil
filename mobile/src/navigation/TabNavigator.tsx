@@ -61,7 +61,7 @@ export function AppNavigator() {
         component={MenuStack}
         options={{
           title: 'Cardápio',
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <Feather name="book-open" size={size} color={color} />
           ),
         }}
@@ -71,7 +71,7 @@ export function AppNavigator() {
         component={CreateOrderStack}
         options={{
           title: 'Carrinho',
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <Feather name="shopping-cart" size={size} color={color} />
           ),
         }}
@@ -81,7 +81,7 @@ export function AppNavigator() {
         component={OrdersStack}
         options={{
           title: 'Pedidos',
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <Feather name="list" size={size} color={color} />
           ),
         }}

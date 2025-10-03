@@ -39,7 +39,7 @@ export const mockDishes: Dish[] = [
       name: 'Vinho Tinto',
       description: 'Uma garrafa de vinho tinto para acompanhar sua refeição.',
       price: 75.00,
-      category: 'BEVERAGE',
+      category: 'DRINK',
       active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

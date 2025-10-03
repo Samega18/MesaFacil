@@ -5,47 +5,47 @@ import {
   TouchableOpacity,
   FlatList,
   RefreshControl,
+  Alert,
 } from 'react-native';
-import { SafeScreen } from '../../components/SafeScreen';
 import { Feather } from '@expo/vector-icons';
 import { styles } from './styles';
 
+import { SafeScreen, CategoryFilter, MenuItemCard } from '../../components';
 import { useDishStore } from '../../stores/dishStore';
 import { useCartStore } from '../../stores/cartStore';
 import { menuCategories } from '../../utils/constants';
-import CategoryFilter from '../../components/CategoryFilter/CategoryFilter';
-import MenuItemCard from '../../components/MenuItemCard/MenuItemCard';
 import { useTheme } from '../../contexts/ThemeContext';
 import { DishCategory } from '../../types/models';
-import { Toast } from '../../components/common/Toast';
-import { useToast } from '../../hooks/useToast';
+import { useToast } from '../../contexts/ToastContext';
 
 interface MenuProps {
-  navigation?: any;
+  navigation?: {
+    navigate: (screen: string) => void;
+  };
 }
 
 const Menu: React.FC<MenuProps> = ({ navigation }) => {
   const { colors } = useTheme();
-  const { toast, showSuccess, hideToast } = useToast();
+  const { showSuccess } = useToast();
   
   // Zustand stores
   const { 
     dishes, 
     fetchDishes, 
     getDishesByCategory, 
-    getActiveDishes 
+    getActiveDishes,
+    refreshDishes,
+    loading,
   } = useDishStore();
   
   const { 
-    addItem, 
-    getTotalItems 
+    addItem,
   } = useCartStore();
 
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [refreshing, setRefreshing] = useState(false);
 
   // Carrinho - usando store
-  const cartCount = getTotalItems();
   const addToCart = useCallback((itemId: number | string) => {
     const dish = dishes.find(d => d.id.toString() === itemId.toString());
     if (dish) {
@@ -56,19 +56,45 @@ const Menu: React.FC<MenuProps> = ({ navigation }) => {
 
   // Carregar pratos ao montar o componente
   useEffect(() => {
-    fetchDishes();
+    const loadDishes = async () => {
+      try {
+        await fetchDishes();
+      } catch (error) {
+        // Extrair mensagem específica do erro
+        let errorMessage = 'Erro ao carregar pratos';
+        
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        
+        Alert.alert('Erro', errorMessage);
+      }
+    };
+    
+    loadDishes();
   }, [fetchDishes]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchDishes();
+      await refreshDishes();
     } catch (error) {
-      console.error('Erro ao atualizar pratos:', error);
+      // Extrair mensagem específica do erro
+      let errorMessage = 'Erro ao atualizar pratos';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      Alert.alert('Erro', errorMessage);
     } finally {
       setRefreshing(false);
     }
-  }, [fetchDishes]);
+  }, [refreshDishes]);
 
   const handleManageDishes = () => {
     navigation?.navigate('ManageDishes');
@@ -78,13 +104,13 @@ const Menu: React.FC<MenuProps> = ({ navigation }) => {
   const mapCategoryToDb = (category: string): DishCategory => {
     switch (category) {
       case 'Bebidas':
-        return 'BEVERAGE';
+        return 'DRINK';
       case 'Pratos Principais':
         return 'MAIN_COURSE';
       case 'Sobremesas':
         return 'DESSERT';
       default:
-        return 'MAIN_COURSE';
+        return 'APPETIZER';
     }
   };
 
@@ -146,31 +172,23 @@ const Menu: React.FC<MenuProps> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={refreshing || loading}
             onRefresh={onRefresh}
             tintColor={colors.primary}
             colors={[colors.primary]}
           />
         }
       />
-      
-      {/* Toast Component */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onHide={hideToast}
-      />
     </View>
   );
 };
 
-const MenuScreen: React.FC = ({ navigation }: any) => {
+const MenuScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <SafeScreen>
       <Menu navigation={navigation} />
     </SafeScreen>
   );
-}
+};
 
 export default MenuScreen;

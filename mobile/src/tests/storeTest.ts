@@ -12,10 +12,10 @@ import { Dish, CartItem, Order } from '../types/models';
 export const testDishStore = () => {
   const { 
     dishes, 
-    setDishes, 
-    addDish, 
+    fetchDishes, 
+    createDish, 
     updateDish, 
-    removeDish,
+    deleteDish,
     getDishById,
     getDishesByCategory,
     getActiveDishes
@@ -34,7 +34,14 @@ export const testDishStore = () => {
   };
 
   // Testando operações
-  addDish(newDish);
+  createDish({
+    name: newDish.name,
+    description: newDish.description,
+    price: newDish.price,
+    category: newDish.category,
+    image: newDish.image,
+    active: newDish.active
+  });
   console.log('Pratos ativos:', getActiveDishes());
   console.log('Pratos principais:', getDishesByCategory('MAIN_COURSE'));
 };

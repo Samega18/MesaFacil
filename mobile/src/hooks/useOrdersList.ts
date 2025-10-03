@@ -1,30 +1,40 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Order, OrderStatus, OrderWithUI } from '../types/models';
+import { useFocusEffect } from '@react-navigation/native';
+import { OrderStatus, OrderWithUI } from '../types/models';
 import { useOrderStore } from '../stores/orderStore';
+import { useToast } from '../contexts/ToastContext';
 
 /**
  * Hook responsável pela lógica de negócio da lista de pedidos.
- * Aplica SRP: única responsabilidade de gerenciar estado e operações da lista.
- * Aplica DIP: abstrai fonte de dados, facilitando troca por API real.
  */
 export const useOrdersList = () => {
   const [selectedFilter, setSelectedFilter] = useState('Todos');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithUI | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  
+
+  const { showSuccess } = useToast();
+
   // Zustand store
   const { 
     orders, 
     fetchOrders, 
     getOrdersByStatus,
-    updateOrderStatusAsync 
+    updateOrderStatusAsync,
+    deleteOrder
   } = useOrderStore();
 
   // Carregar pedidos ao montar o componente
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  // Atualizar pedidos quando a tela recebe foco (após criar um novo pedido)
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrders();
+    }, [fetchOrders])
+  );
 
   // Mapear filtros do menu para status do banco de dados
   const mapFilterToDbStatus = (filter: string): OrderStatus | null => {
@@ -97,18 +107,32 @@ export const useOrdersList = () => {
   /**
    * Atualiza o status de um pedido.
    */
-  const handleUpdateStatus = useCallback(async (orderId: string, status: OrderStatus, notes?: string) => {
+  const handleUpdateStatus = useCallback(async (orderId: string, status: OrderStatus) => {
     try {
       await updateOrderStatusAsync(orderId, status);
-      // Se houver observações, podemos atualizar o pedido com as notas também
-      if (notes) {
-        // TODO: Implementar atualização de notas se necessário
-        console.log('Notas adicionadas:', notes);
-      }
+      // Fechar o modal após atualização bem-sucedida
+      setModalVisible(false);
+      setSelectedOrder(null);
+      showSuccess('Status atualizado com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar status do pedido:', error);
     }
-  }, [updateOrderStatusAsync]);
+  }, [updateOrderStatusAsync, showSuccess]);
+
+  /**
+   * Deleta um pedido.
+   */
+  const handleDeleteOrder = useCallback(async (orderId: string) => {
+    try {
+      await deleteOrder(orderId);
+      // Fechar o modal após exclusão bem-sucedida
+      setModalVisible(false);
+      setSelectedOrder(null);
+      showSuccess('Pedido excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar pedido:', error);
+    }
+  }, [deleteOrder, showSuccess]);
 
   return {
     // Estado
@@ -124,5 +148,6 @@ export const useOrdersList = () => {
     handleOrderPress,
     handleCloseModal,
     handleUpdateStatus,
+    handleDeleteOrder,
   };
 };

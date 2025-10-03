@@ -1,16 +1,23 @@
 import { useState, useCallback } from 'react';
-import { OrderItem, CartItem, LegacyOrderItem } from '../types/models';
+import { OrderItem, CartItem, LegacyOrderItem, OrderStatus } from '../types/models';
 import { useCartStore } from '../stores/cartStore';
 import { useOrderStore } from '../stores/orderStore';
+import { useToast } from '../contexts/ToastContext';
 import { orderStatus } from '../utils/constants';
+
+// Mapeamento entre status em português e tipos OrderStatus
+const statusMapping: Record<string, OrderStatus> = {
+  'Recebido': 'RECEIVED',
+  'Em Preparo': 'PREPARING',
+  'Pronto': 'READY',
+  'Entregue': 'DELIVERED'
+};
 
 /**
  * Hook para gerenciar estado e lógica de negócio do pedido.
  * Centraliza operações de quantidade, cálculos, status e remoção.
- * Facilita testes unitários e reutilização.
- * Agora integrado com cartStore para gerenciar itens do carrinho.
  */
-export const useOrderManagement = () => {
+export const useOrderManagement = (navigation?: any) => {
   const [selectedStatus, setSelectedStatus] = useState(orderStatus[0]); // 'Recebido' como padrão
   const [pendingRemoval, setPendingRemoval] = useState<{
     itemId: string;
@@ -27,6 +34,7 @@ export const useOrderManagement = () => {
   } = useCartStore();
   
   const { createOrder } = useOrderStore();
+  const { showSuccess, showError } = useToast();
 
   // Converte CartItem para LegacyOrderItem para compatibilidade com UI
   // Mantém um mapeamento entre IDs numéricos (UI) e IDs string (store)
@@ -99,21 +107,28 @@ export const useOrderManagement = () => {
    */
   const confirmOrder = useCallback(async () => {
     if (cartItems.length === 0) {
-      console.warn('Não é possível criar pedido sem itens');
+      showError('Não é possível criar pedido sem itens');
       return;
     }
 
     try {
-      const order = await createOrder(cartItems, `Status: ${selectedStatus}`);
-      if (order) {
-        console.log('Pedido criado com sucesso:', order);
-        clearCart(); // Limpa o carrinho após criar o pedido
-        // TODO: Navegar para tela de confirmação ou lista de pedidos
+      const mappedStatus = statusMapping[selectedStatus];
+      const order = await createOrder(cartItems, undefined, mappedStatus);
+      showSuccess('Pedido criado com sucesso!');
+      clearCart(); // Limpa o carrinho após criar o pedido
+      
+      // Navegar para a aba de pedidos após criação bem-sucedida
+      if (navigation) {
+        navigation.navigate('OrdersTab');
       }
+      
+      return order;
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
+      showError('Erro ao criar pedido. Tente novamente.');
+      throw error; // Re-throw para permitir tratamento adicional se necessário
     }
-  }, [cartItems, selectedStatus, createOrder, clearCart]);
+  }, [cartItems, selectedStatus, createOrder, clearCart, showSuccess, showError, navigation]);
 
   return {
     // Estado

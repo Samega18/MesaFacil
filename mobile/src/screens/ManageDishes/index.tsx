@@ -1,9 +1,6 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import { SafeScreen } from '../../components/SafeScreen';
-import { ManageDishesHeader } from '../../components/ManageDishesHeader';
-import { DishList } from '../../components/DishList';
-import { DishModal } from '../../components/DishModal';
+import { SafeScreen, ManageDishesHeader, DishList, DishModal } from '../../components';
 import { useDishManagement } from '../../hooks/useDishManagement';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from './styles';
@@ -73,7 +70,7 @@ const ManageDishes: React.FC<ManageDishesProps> = ({ navigation }) => {
 /**
  * Responsabilidade: Aplicar SafeScreen e passar navigation
  */
-const ManageDishesScreen: React.FC = ({ navigation }: any) => {
+const ManageDishesScreen: React.FC<ManageDishesProps> = ({ navigation }) => {
   return (
     <SafeScreen>
       <ManageDishes navigation={navigation} />
