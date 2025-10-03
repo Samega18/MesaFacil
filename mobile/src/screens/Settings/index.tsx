@@ -2,11 +2,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { SafeScreen } from '../../components/SafeScreen';
+import { SafeScreen, Button } from '../../components';
 import { typography, metrics } from '../../styles';
-import { Button } from '../../components/Button';
 
-function Settings() {
+
+const Settings = () =>{
   const { theme, toggleTheme, colors } = useTheme();
 
   return (
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function SettingsScreen() {
+const SettingsScreen: React.FC = () => {
   return (
     <SafeScreen>
       <Settings />

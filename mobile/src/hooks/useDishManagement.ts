@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { Dish } from '../types/models';
+import { CreateDishRequest, UpdateDishRequest } from '../types/api';
 import { useDishStore } from '../stores/dishStore';
+import { useToast } from '../contexts/ToastContext';
 
 export interface DishManagementState {
   dishes: Dish[];
@@ -16,24 +18,24 @@ export interface DishManagementActions {
   handleAddDish: () => void;
   handleEditDish: (dish: Dish) => void;
   handleDeleteDish: (dish: Dish) => void;
-  handleSaveDish: (dishData: Partial<Dish>) => void;
+  handleSaveDish: (dishData: CreateDishRequest | UpdateDishRequest) => Promise<void>;
   handleCloseModal: () => void;
   onRefresh: () => void;
 }
 
 export const useDishManagement = (): DishManagementState & DishManagementActions => {
+  const { showSuccess } = useToast();
+
   // Integração com dishStore
   const { 
     dishes, 
     loading, 
     error, 
-    addDish, 
-    updateDish, 
-    removeDish, 
-    createDish, 
-    updateDishAsync, 
+    createDish,
+    updateDish,
     deleteDish,
-    loadMockData 
+    fetchDishes,
+    refreshDishes
   } = useDishStore();
 
   // Estados locais para UI
@@ -41,15 +43,14 @@ export const useDishManagement = (): DishManagementState & DishManagementActions
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
 
-  // Carregar dados mock na inicialização se necessário
+  // Carregar dados da API na inicialização
   useEffect(() => {
     if (dishes.length === 0) {
-      loadMockData();
+      fetchDishes();
     }
-  }, [dishes.length, loadMockData]);
+  }, [dishes.length, fetchDishes]);
 
   /**
-   * 🚀 Performance: useCallback para evitar re-renders desnecessários
    * Abre modal para adicionar novo prato
    */
   const handleAddDish = useCallback(() => {
@@ -58,7 +59,6 @@ export const useDishManagement = (): DishManagementState & DishManagementActions
   }, []);
 
   /**
-   * 🚀 Performance: useCallback memoizado
    * Abre modal para editar prato existente
    */
   const handleEditDish = useCallback((dish: Dish) => {
@@ -67,8 +67,7 @@ export const useDishManagement = (): DishManagementState & DishManagementActions
   }, []);
 
   /**
-   * 🛡️ UX: Confirmação antes de excluir
-   * 🚀 Performance: useCallback para estabilidade de referência
+   *  UX: Confirmação antes de excluir
    */
   const handleDeleteDish = useCallback(async (dish: Dish) => {
     Alert.alert(
@@ -82,8 +81,18 @@ export const useDishManagement = (): DishManagementState & DishManagementActions
           onPress: async () => {
             try {
               await deleteDish(dish.id);
+              showSuccess('Prato excluído com sucesso!');
             } catch (error) {
-              Alert.alert('Erro', 'Não foi possível excluir o prato');
+              // Extrair mensagem específica do erro
+              let errorMessage = 'Não foi possível excluir o prato';
+              
+              if (error instanceof Error) {
+                errorMessage = error.message;
+              } else if (typeof error === 'string') {
+                errorMessage = error;
+              }
+              
+              Alert.alert('Erro', errorMessage);
             }
           },
         },
@@ -91,37 +100,7 @@ export const useDishManagement = (): DishManagementState & DishManagementActions
     );
   }, [deleteDish]);
 
-  /**
-   * 🎯 SOLID: Single Responsibility - função focada apenas em salvar
-   * Lógica centralizada para criar/editar pratos
-   */
-  const handleSaveDish = useCallback(async (dishData: Partial<Dish>) => {
-    try {
-      if (selectedDish) {
-        // Editar prato existente
-        await updateDishAsync(selectedDish.id, dishData);
-      } else {
-        // Criar novo prato
-        const newDishData = {
-          name: dishData.name!,
-          description: dishData.description!,
-          price: dishData.price!,
-          category: dishData.category!,
-          active: dishData.active || true,
-          image: dishData.image || 'https://via.placeholder.com/150',
-        };
-        await createDish(newDishData);
-      }
-      
-      // Fechar modal após salvar
-      handleCloseModal();
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar o prato');
-    }
-  }, [selectedDish, updateDishAsync, createDish]);
-
-  /**
-   * 🚀 Performance: useCallback para estabilidade
+   /**
    * Fecha modal e limpa estado
    */
   const handleCloseModal = useCallback(() => {
@@ -130,22 +109,61 @@ export const useDishManagement = (): DishManagementState & DishManagementActions
   }, []);
 
   /**
-   * 🔄 Refresh: Recarrega dados do store
-   * Em produção, faria chamada para API
+   * Lógica centralizada para criar/editar pratos
+   */
+  const handleSaveDish = useCallback(async (dishData: CreateDishRequest | UpdateDishRequest) => {
+    try {
+      if (selectedDish) {
+        // Editar prato existente
+        await updateDish(selectedDish.id, dishData as UpdateDishRequest);
+        showSuccess('Prato editado com sucesso!');
+      } else {
+        // Criar novo prato
+        await createDish(dishData as CreateDishRequest);
+        showSuccess('Prato adicionado com sucesso!');
+      }
+      
+      // Fechar modal após salvar com sucesso
+      handleCloseModal();
+    } catch (error) {
+      // Extrair mensagem específica do erro
+      let errorMessage = 'Não foi possível salvar o prato';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      Alert.alert('Erro', errorMessage);
+      // Re-throw para permitir que o componente saiba que houve erro
+      throw error;
+    }
+  }, [selectedDish, updateDish, createDish, handleCloseModal]);
+
+  /**
+   * Usa a API para buscar dados atualizados
    */
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      // Recarregar dados mock ou fazer chamada para API
-      loadMockData();
-      // Simular delay de rede
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Recarregar dados da API
+      await refreshDishes();
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível recarregar os dados');
+      // Extrair mensagem específica do erro
+      let errorMessage = 'Não foi possível recarregar os dados';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      Alert.alert('Erro', errorMessage);
     } finally {
       setRefreshing(false);
     }
-  }, [loadMockData]);
+  }, [refreshDishes]);
 
   return {
     // Estado

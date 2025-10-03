@@ -1,22 +1,19 @@
 import React from 'react';
 import { View, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeScreen } from '../../components/SafeScreen';
-import { CreateOrderHeader } from '../../components/CreateOrderHeader';
-import { OrderItemsList } from '../../components/OrderItemsList';
-import { OrderSummary } from '../../components/OrderSummary';
-import { ConfirmationModal } from '../../components/ConfirmationModal';
+import { SafeScreen, CreateOrderHeader, OrderItemsList, OrderSummary, ConfirmationModal } from '../../components';
 import { useOrderManagement } from '../../hooks/useOrderManagement';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from './styles';
 
+interface CreateOrderProps {
+  navigation?: any;
+}
 
 /**
  * Orquestrador principal da tela de criar pedido.
  * Compõe componentes especializados e coordena fluxo de dados.
- * Aplica SOLID: SRP, OCP, DIP.
- * Agora inclui funcionalidade de remoção de itens com confirmação.
  */
-const CreateOrder: React.FC = () => {
+const CreateOrder: React.FC<CreateOrderProps> = ({ navigation }) => {
   const { colors } = useTheme();
   const {
     selectedStatus,
@@ -28,7 +25,7 @@ const CreateOrder: React.FC = () => {
     confirmRemoveItem,
     cancelRemoveItem,
     total,
-  } = useOrderManagement();
+  } = useOrderManagement(navigation);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -66,12 +63,12 @@ const CreateOrder: React.FC = () => {
   );
 };
 
-const CreateOrderScreen: React.FC = () => {
+const CreateOrderScreen: React.FC<CreateOrderProps> = ({ navigation }) => {
   return (
     <SafeScreen>
-      <CreateOrder />
+      <CreateOrder navigation={navigation} />
     </SafeScreen>
   );
-}
+};
 
 export default CreateOrderScreen;

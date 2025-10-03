@@ -2,13 +2,11 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from './src/contexts/ThemeContext';
+import { ToastProvider } from './src/contexts/ToastContext';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useSystemNavigationBar } from './src/hooks/useSystemNavigationBar';
 import { AppNavigator } from './src/navigation';
 import { ActivityIndicator, View } from 'react-native';
-
-// Importa o teste de mock data para desenvolvimento
-import './src/tests/mockStoreTest';
 
 /**
  * Este componente existe APENAS para garantir que os hooks que usam 
@@ -44,7 +42,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AppContent />
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

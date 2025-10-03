@@ -13,7 +13,6 @@ interface StatusColorConfig {
 
 /**
  * Serviço responsável por fornecer configurações visuais dos status de pedidos.
- * Aplica SRP: única responsabilidade de gerenciar aparência de status.
  */
 export class OrderStatusService {
   private static readonly statusColors: Record<OrderStatus, StatusColorConfig> = {
@@ -47,13 +46,6 @@ export class OrderStatusService {
    * Retorna configuração de cores para um status específico.
    */
   static getStatusColors(status: OrderStatus): StatusColorConfig {
-    return this.statusColors[status];
-  }
-
-  /**
-   * Retorna lista de todos os status disponíveis.
-   */
-  static getAllStatuses(): OrderStatus[] {
-    return Object.keys(this.statusColors) as OrderStatus[];
+    return this.statusColors[status] || this.statusColors.PREPARING; // Fallback para PREPARING
   }
 }

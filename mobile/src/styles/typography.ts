@@ -5,7 +5,6 @@
 import { scale } from 'react-native-size-matters';
 import { TextStyle } from 'react-native';
 
-// É necessário carregar a fonte 'Inter' no seu projeto Expo.
 export const fonts = {
   inter: {
     regular: 'Inter_400Regular',

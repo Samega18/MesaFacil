@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Serviço do Backend (API)
   backend:
@@ -12,10 +10,14 @@ services:
       - ./backend:/usr/src/app  # Mapeia o código da pasta 'backend' para dentro do contêiner, permitindo hot-reload
       - /usr/src/app/node_modules # Impede que a pasta node_modules local sobrescreva a do contêiner
     depends_on:
-      - db  
+      db:
+        condition: service_healthy
     env_file:
       - ./backend/.env  # Carrega as variáveis de ambiente do arquivo .env
     command: npm run dev
+    restart: unless-stopped
+    networks:
+      - mesafacil_network
 
   # Serviço do Banco de Dados (Postgres)
   db:
@@ -30,7 +32,21 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - mesafacil_network
 
 # Volume nomeado para persistir os dados do Postgres
 volumes:
   postgres_data:
+
+# Rede personalizada para melhor comunicação entre containers
+networks:
+  mesafacil_network:
+    driver: bridge
